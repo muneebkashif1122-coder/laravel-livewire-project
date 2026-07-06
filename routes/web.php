@@ -13,16 +13,19 @@ use App\Livewire\Authors\ShowAuthor;
 use App\Livewire\Categories\EditCategory;
 use App\Livewire\Authors\EditAuthor;
 // use App\Livewire\Posts\EditPost;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 
 
 
-Route::get('/', function () {
-    return view('welcome');
-});
+// Route::get('/', function () {
+//     return view('welcome');
+// });
 
-Route::get('/login', AdminLogin::class)->name('login');
-// Route::middleware(['auth'])->group(function () {
+Route::get('/', AdminLogin::class)->name('login')->middleware('guest:admins');
+
+Route::group(['middleware' => 'auth:admins'], function() {
     Route::get('/dashboard', AdminDashboard::class)->name('dashboard');
     Route::get('/author', AddAuthor::class)->name('author');
     Route::get('/author-list', ShowAuthor::class)->name('authors');
@@ -33,7 +36,15 @@ Route::get('/login', AdminLogin::class)->name('login');
     Route::get('/admin/categories/edit/{id}', EditCategory::class)->name('categories.edit');
     Route::get('/admin/posts/edit/{id}', 'App\Livewire\Posts\EditPost')->name('posts.edit');
     Route::get('/admin/authors/edit/{id}', EditAuthor::class)->name('authors.edit');
-// });
+
+
+Route::post('/logout', function (Request $request) {
+    Auth::guard('admins')->logout();
+    $request->session()->invalidate();
+    $request->session()->regenerateToken();
+    return redirect()->route('login');
+})->name('logout');
+});
 
 
 
